@@ -193,6 +193,21 @@
             },
 
             handleModalConfirm() {
+                if (this.state.editingEmail === "CLEAR_ALL_COMMAND") {
+                    localStorage.clear();
+                    this.state.savedAccounts = [];
+                    this.renderSavedList();
+                    this.showToast('Toutes les données ont été effacées');
+                    this.closeModal();
+                    // On réinitialise l'état de la modal pour les prochains usages
+                    this.elements.modalInput.classList.remove('hidden');
+                    document.getElementById('modal-confirm-btn').classList.replace('bg-red-600', 'bg-indigo-600');
+                    document.getElementById('modal-confirm-btn').textContent = "Confirmer";
+        
+                    // Optionnel : Générer une nouvelle identité propre après le wipe
+                    this.createNewIdentity();
+                    return;
+                }
                 const name = this.elements.modalInput.value.trim() || "Sans nom";
                 
                 if (this.state.editingEmail) {
@@ -238,6 +253,17 @@
                 localStorage.setItem('saved_mails_v3', JSON.stringify(this.state.savedAccounts));
                 this.renderSavedList();
                 this.showToast('Compte supprimé');
+            },
+
+            // --- Dans l'objet App ---
+
+            confirmClearAll() {
+                this.state.editingEmail = "CLEAR_ALL_COMMAND"; // Tag spécial pour la modal
+                document.getElementById('modal-title').textContent = "Tout effacer ?";
+                this.elements.modalInput.classList.add('hidden'); // On cache l'input pour cette action
+                document.getElementById('modal-confirm-btn').classList.replace('bg-indigo-600', 'bg-red-600');
+                document.getElementById('modal-confirm-btn').textContent = "Supprimer définitivement";
+                this.elements.modal.classList.add('modal-active');
             },
 
             renderSavedList() {
