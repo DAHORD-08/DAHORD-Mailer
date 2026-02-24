@@ -139,7 +139,7 @@
                 currentToken: '',
                 messages: [],
                 savedAccounts: JSON.parse(localStorage.getItem('saved_mails_v3') || '[]'),
-                editingEmail: null // Pour savoir si on édite un compte existant
+                editingEmail: null 
             },
 
             elements: {
@@ -168,7 +168,6 @@
                 setInterval(() => this.syncInbox(), 10000);
             },
 
-            // --- Logique Modal ---
             openModalForSave() {
                 this.state.editingEmail = null;
                 document.getElementById('modal-title').textContent = "Nommer ce compte";
