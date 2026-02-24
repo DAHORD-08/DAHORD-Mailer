@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DAHORD'Mailer | Pro Identity Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .modal-active { display: flex !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased">
+
+    <div id="name-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+            <div class="p-6">
+                <h3 id="modal-title" class="text-xl font-bold text-slate-800 mb-4">Enregistrer le compte</h3>
+                <input type="text" id="modal-input" placeholder="Ex: Compte Netflix, Inscription Forum..." 
+                       class="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all mb-6">
+                <div class="flex gap-3">
+                    <button onclick="App.closeModal()" class="flex-1 px-4 py-3 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Annuler</button>
+                    <button id="modal-confirm-btn" class="flex-1 px-4 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg transition-all">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <header class="bg-white border-b border-slate-200 py-4 shadow-sm">
+            <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-indigo-600 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    DAHORD'Mailer
+                </h1>
+                <div class="text-xs font-medium text-slate-400 flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    SYNCHRONISÉ
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow max-w-6xl mx-auto w-full p-4 md:p-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <aside class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden sticky top-8">
+                    <div class="p-4 bg-slate-800 text-white">
+                        <h2 class="text-xs font-bold uppercase tracking-widest">Identités Enregistrées</h2>
+                    </div>
+                    <div id="saved-accounts-list" class="max-h-[600px] overflow-y-auto custom-scrollbar"></div>
+                </div>
+            </aside>
+
+            <div class="lg:col-span-3 space-y-6">
+                <section class="bg-white rounded-2xl shadow-xl p-6 border border-slate-100">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-grow flex gap-2">
+                            <div class="relative flex-grow">
+                                <input id="email-display" readonly type="text" value="Génération..." class="w-full bg-slate-100 border-none rounded-xl py-4 px-6 text-lg font-mono text-slate-700 focus:ring-2 focus:ring-indigo-500" />
+                                <button id="btn-copy" title="Copier" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white hover:bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                </button>
+                            </div>
+                            <button onclick="App.openModalForSave()" title="Mettre en favoris" class="bg-amber-100 hover:bg-amber-200 text-amber-600 px-4 rounded-xl border border-amber-200 transition-all active:scale-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="btn-refresh" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg active:scale-95">Actualiser</button>
+                            <button id="btn-new" class="bg-slate-800 hover:bg-slate-900 text-white p-4 rounded-xl shadow-lg active:scale-95"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden h-[500px] flex flex-col">
+                        <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
+                            <h2 class="font-bold text-slate-700 uppercase text-xs">Messages</h2>
+                            <span id="unread-count" class="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                        </div>
+                        <div id="inbox-list" class="flex-grow overflow-y-auto custom-scrollbar"></div>
+                    </div>
+                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-slate-100 h-[500px] flex flex-col overflow-hidden">
+                        <div id="email-viewer-empty" class="flex-grow flex flex-col items-center justify-center text-slate-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+                            <p>En attente de sélection</p>
+                        </div>
+                        <div id="email-viewer-content" class="hidden flex flex-col h-full">
+                            <div class="p-4 border-b bg-slate-50">
+                                <h3 id="view-subject" class="font-bold text-slate-800 text-lg leading-tight"></h3>
+                                <p id="view-from" class="text-xs text-indigo-600 mt-1"></p>
+                            </div>
+                            <iframe id="view-body" class="w-full flex-grow border-none"></iframe>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="fixed bottom-8 right-8 px-6 py-3 rounded-xl shadow-2xl z-50 text-white transition-all translate-y-24 opacity-0 duration-300 font-medium"></div>
+
+    <script>
+        const MailService = {
+            API_URL: "https://api.mail.tm",
+            async getLatestDomain() {
+                const res = await fetch(`${this.API_URL}/domains`);
+                const data = await res.json();
+                return data["hydra:member"][data["hydra:member"].length - 1].domain;
+            },
+            async createAccount() {
+                const domain = await this.getLatestDomain();
+                const id = Math.random().toString(36).substring(2, 12);
+                const email = `${id}@${domain}`;
+                const password = "password123";
+                await fetch(`${this.API_URL}/accounts`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ address: email, password }),
+                });
+                const authRes = await fetch(`${this.API_URL}/token`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ address: email, password }),
+                });
+                const authData = await authRes.json();
+                return { email, token: authData.token };
+            }
+        };
+
+        const App = {
+            state: {
+                currentEmail: '',
+                currentToken: '',
+                messages: [],
+                savedAccounts: JSON.parse(localStorage.getItem('saved_mails_v3') || '[]'),
+                editingEmail: null // Pour savoir si on édite un compte existant
+            },
+
+            elements: {
+                display: document.getElementById('email-display'),
+                inbox: document.getElementById('inbox-list'),
+                savedList: document.getElementById('saved-accounts-list'),
+                toast: document.getElementById('toast'),
+                modal: document.getElementById('name-modal'),
+                modalInput: document.getElementById('modal-input'),
+                modalConfirm: document.getElementById('modal-confirm-btn')
+            },
+
+            async init() {
+                this.renderSavedList();
+                if (this.state.savedAccounts.length > 0) {
+                    this.loadAccount(this.state.savedAccounts[0].email, this.state.savedAccounts[0].token);
+                } else {
+                    await this.createNewIdentity();
+                }
+                
+                document.getElementById('btn-new').onclick = () => this.createNewIdentity();
+                document.getElementById('btn-copy').onclick = () => this.copyToClipboard();
+                document.getElementById('btn-refresh').onclick = () => { this.showToast('Mise à jour...'); this.syncInbox(); };
+                this.elements.modalConfirm.onclick = () => this.handleModalConfirm();
+
+                setInterval(() => this.syncInbox(), 10000);
+            },
+
+            // --- Logique Modal ---
+            openModalForSave() {
+                this.state.editingEmail = null;
+                document.getElementById('modal-title').textContent = "Nommer ce compte";
+                this.elements.modalInput.value = "";
+                this.elements.modal.classList.add('modal-active');
+                this.elements.modalInput.focus();
+            },
+
+            openModalForEdit(e, acc) {
+                e.stopPropagation();
+                this.state.editingEmail = acc.email;
+                document.getElementById('modal-title').textContent = "Modifier le nom";
+                this.elements.modalInput.value = acc.name;
+                this.elements.modal.classList.add('modal-active');
+                this.elements.modalInput.focus();
+            },
+
+            closeModal() {
+                this.elements.modal.classList.remove('modal-active');
+            },
+
+            handleModalConfirm() {
+                const name = this.elements.modalInput.value.trim() || "Sans nom";
+                
+                if (this.state.editingEmail) {
+                    // Mode Edition
+                    const acc = this.state.savedAccounts.find(a => a.email === this.state.editingEmail);
+                    if (acc) acc.name = name;
+                    this.showToast('Nom modifié');
+                } else {
+                    // Mode Nouveau Favori
+                    const exists = this.state.savedAccounts.find(a => a.email === this.state.currentEmail);
+                    if (!exists) {
+                        this.state.savedAccounts.unshift({ name, email: this.state.currentEmail, token: this.state.currentToken });
+                        this.showToast('Compte enregistré');
+                    }
+                }
+
+                localStorage.setItem('saved_mails_v3', JSON.stringify(this.state.savedAccounts));
+                this.renderSavedList();
+                this.closeModal();
+            },
+
+            // --- Logique Mail ---
+            async createNewIdentity() {
+                try {
+                    this.showToast('Nouvelle adresse...');
+                    const account = await MailService.createAccount();
+                    this.loadAccount(account.email, account.token);
+                } catch (e) { this.showToast('Erreur API', true); }
+            },
+
+            loadAccount(email, token) {
+                this.state.currentEmail = email;
+                this.state.currentToken = token;
+                this.elements.display.value = email;
+                this.resetViewer();
+                this.syncInbox();
+                this.renderSavedList();
+            },
+
+            removeAccount(e, email) {
+                e.stopPropagation();
+                this.state.savedAccounts = this.state.savedAccounts.filter(a => a.email !== email);
+                localStorage.setItem('saved_mails_v3', JSON.stringify(this.state.savedAccounts));
+                this.renderSavedList();
+                this.showToast('Compte supprimé');
+            },
+
+            renderSavedList() {
+                this.elements.savedList.innerHTML = this.state.savedAccounts.length ? this.state.savedAccounts.map(acc => `
+                    <div onclick="App.loadAccount('${acc.email}', '${acc.token}')" 
+                         class="p-4 border-b cursor-pointer hover:bg-indigo-50 transition-all ${this.state.currentEmail === acc.email ? 'bg-indigo-50 border-l-4 border-l-indigo-600' : ''} flex justify-between items-center group">
+                        <div class="truncate mr-2">
+                            <p class="font-bold text-sm text-slate-800 truncate">${acc.name}</p>
+                            <p class="text-[10px] font-mono text-slate-400 truncate">${acc.email}</p>
+                        </div>
+                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="App.openModalForEdit(event, ${JSON.stringify(acc).replace(/"/g, '&quot;')})" class="text-indigo-400 hover:text-indigo-600 p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            </button>
+                            <button onclick="App.removeAccount(event, '${acc.email}')" class="text-slate-300 hover:text-red-500 p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                `).join('') : '<p class="p-8 text-xs text-slate-400 text-center italic">Aucun favori</p>';
+            },
+
+            async syncInbox() {
+                if (!this.state.currentToken) return;
+                try {
+                    const res = await fetch(`${MailService.API_URL}/messages`, {
+                        headers: { Authorization: `Bearer ${this.state.currentToken}` },
+                    });
+                    const data = await res.json();
+                    this.state.messages = data['hydra:member'];
+                    this.renderInbox();
+                } catch (e) { console.error('Sync Error'); }
+            },
+
+            renderInbox() {
+                document.getElementById('unread-count').textContent = this.state.messages.length;
+                this.elements.inbox.innerHTML = this.state.messages.length ? this.state.messages.map(msg => `
+                    <div onclick="App.viewEmail('${msg.id}')" class="p-4 border-b hover:bg-slate-50 cursor-pointer transition-colors border-l-2 border-l-transparent hover:border-l-indigo-500">
+                        <p class="text-[10px] font-bold text-indigo-600 truncate mb-0.5">${msg.from.address}</p>
+                        <p class="text-xs font-semibold text-slate-800 truncate">${msg.subject}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">${new Date(msg.createdAt).toLocaleTimeString()}</p>
+                    </div>
+                `).join('') : '<div class="p-12 text-center text-xs text-slate-300">Boîte vide</div>';
+            },
+
+            async viewEmail(id) {
+                try {
+                    const res = await fetch(`${MailService.API_URL}/messages/${id}`, {
+                        headers: { Authorization: `Bearer ${this.state.currentToken}` },
+                    });
+                    const msg = await res.json();
+                    document.getElementById('email-viewer-empty').classList.add('hidden');
+                    document.getElementById('email-viewer-content').classList.remove('hidden');
+                    document.getElementById('view-subject').textContent = msg.subject;
+                    document.getElementById('view-from').textContent = `De : ${msg.from.address}`;
+                    document.getElementById('view-body').srcdoc = `
+                        <html><body style="font-family:sans-serif;color:#334155;padding:20px;line-height:1.6;">
+                        ${DOMPurify.sanitize(msg.html[0] || msg.intro)}
+                        </body></html>`;
+                } catch (e) { this.showToast('Erreur lecture', true); }
+            },
+
+            resetViewer() {
+                document.getElementById('email-viewer-empty').classList.remove('hidden');
+                document.getElementById('email-viewer-content').classList.add('hidden');
+            },
+
+            copyToClipboard() {
+                navigator.clipboard.writeText(this.state.currentEmail);
+                this.showToast('Copié !');
+            },
+
+            showToast(msg, isError = false) {
+                const t = this.elements.toast;
+                t.textContent = msg;
+                t.className = `fixed bottom-8 right-8 px-6 py-3 rounded-xl shadow-2xl z-[200] text-white transition-all translate-y-0 opacity-100 ${isError ? 'bg-red-600' : 'bg-slate-900'}`;
+                setTimeout(() => { t.classList.add('translate-y-24'); t.classList.replace('opacity-100', 'opacity-0'); }, 3000);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
