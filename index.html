@@ -268,7 +268,7 @@
 
             renderSavedList() {
                 this.elements.savedList.innerHTML = this.state.savedAccounts.length ? this.state.savedAccounts.map(acc => `
-                    <div onclick="App.loadAccount('${acc.email}', '${acc.token}')" 
+                    <div onclick="App.loadAccount('${acc.email}', '${acc.token}')" data-label="mail-indice"
                          class="p-4 border-b cursor-pointer hover:bg-indigo-50 transition-all ${this.state.currentEmail === acc.email ? 'bg-indigo-50 border-l-4 border-l-indigo-600' : ''} flex justify-between items-center group">
                         <div class="truncate mr-2">
                             <p class="font-bold text-sm text-slate-800 truncate">${acc.name}</p>
