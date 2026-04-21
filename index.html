@@ -268,7 +268,7 @@
 
             renderSavedList() {
                 this.elements.savedList.innerHTML = this.state.savedAccounts.length ? this.state.savedAccounts.map(acc => `
-                    <div  data-label="mail-indice-for-bot-use" onclick="App.loadAccount('${acc.email}', '${acc.token}')"
+                    <div onclick="App.loadAccount('${acc.email}', '${acc.token}')"
                          class="p-4 border-b cursor-pointer hover:bg-indigo-50 transition-all ${this.state.currentEmail === acc.email ? 'bg-indigo-50 border-l-4 border-l-indigo-600' : ''} flex justify-between items-center group">
                         <div class="truncate mr-2">
                             <p class="font-bold text-sm text-slate-800 truncate">${acc.name}</p>
@@ -301,7 +301,7 @@
             renderInbox() {
                 document.getElementById('unread-count').textContent = this.state.messages.length;
                 this.elements.inbox.innerHTML = this.state.messages.length ? this.state.messages.map(msg => `
-                    <div onclick="App.viewEmail('${msg.id}')" class="p-4 border-b hover:bg-slate-50 cursor-pointer transition-colors border-l-2 border-l-transparent hover:border-l-indigo-500">
+                    <div onclick="App.viewEmail('${msg.id}')" data-label="mail-indice-for-bot-use" class="p-4 border-b hover:bg-slate-50 cursor-pointer transition-colors border-l-2 border-l-transparent hover:border-l-indigo-500">
                         <p class="text-[10px] font-bold text-indigo-600 truncate mb-0.5">${msg.from.address}</p>
                         <p class="text-xs font-semibold text-slate-800 truncate">${msg.subject}</p>
                         <p class="text-[10px] text-slate-400 mt-1">${new Date(msg.createdAt).toLocaleTimeString()}</p>
