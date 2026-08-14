@@ -110,11 +110,11 @@
 
     <script>
         const MailService = {
-            API_URL: "https://api.mail.tm",
+            API_URL: "/api",
             async getLatestDomain() {
                 const res = await fetch(`${this.API_URL}/domains`);
                 const data = await res.json();
-                return data["hydra:member"][data["hydra:member"].length - 1].domain;
+                const members = Array.isArray(data) ? data : (data["hydra:member"] || []); return members[members.length - 1].domain;
             },
             async createAccount() {
                 const domain = await this.getLatestDomain();
@@ -293,7 +293,7 @@
                         headers: { Authorization: `Bearer ${this.state.currentToken}` },
                     });
                     const data = await res.json();
-                    this.state.messages = data['hydra:member'];
+                    this.state.messages = Array.isArray(data) ? data : (data['hydra:member'] || []);
                     this.renderInbox();
                 } catch (e) { console.error('Sync Error'); }
             },
@@ -348,3 +348,8 @@
     </script>
 </body>
 </html>
+
+
+
+
+
