@@ -1,0 +1,36 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  publish-worker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install wrangler
+        run: npm install -g wrangler@2
+
+      - name: Publish Cloudflare Worker
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
+        run: |
+          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ACCOUNT_ID" ] || [ -z "$CF_WORKER_NAME" ]; then
+            echo "Missing required secrets: CF_API_TOKEN, CF_ACCOUNT_ID, CF_WORKER_NAME";
+            exit 1;
+          fi
+          # Use wrangler to publish the worker script in cloudflare-worker.js
+          export CLOUDFLARE_API_TOKEN="$CF_API_TOKEN"
+          wrangler publish ./cloudflare-worker.js --name "$CF_WORKER_NAME" --account-id "$CF_ACCOUNT_ID" --release
