@@ -1,10 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Set this to your deployed proxy (Cloudflare Worker URL, Vercel function URL, etc.) for GitHub Pages deployment -->
-    <meta name="mail-proxy" content="">
     <title>DAHORD'Mailer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
@@ -111,16 +109,13 @@
     <div id="toast" class="fixed bottom-8 right-8 px-6 py-3 rounded-xl shadow-2xl z-50 text-white transition-all translate-y-24 opacity-0 duration-300 font-medium"></div>
 
     <script>
-        const mailProxyMeta = document.querySelector('meta[name="mail-proxy"]');
         const MailService = {
-            API_URL: (mailProxyMeta && mailProxyMeta.content) ? mailProxyMeta.content.replace(/\/$/, '') : '/api',
+            API_URL: "https://api.mail.tm",
             async getLatestDomain() {
                 const res = await fetch(`${this.API_URL}/domains`);
                 const data = await res.json();
-                const members = Array.isArray(data) ? data : (data["hydra:member"] || []);
-                return members[members.length - 1] && members[members.length - 1].domain;
+                return data["hydra:member"][data["hydra:member"].length - 1].domain;
             },
-
             async createAccount() {
                 const domain = await this.getLatestDomain();
                 const id = Math.random().toString(36).substring(2, 12);
@@ -298,7 +293,7 @@
                         headers: { Authorization: `Bearer ${this.state.currentToken}` },
                     });
                     const data = await res.json();
-                    this.state.messages = Array.isArray(data) ? data : (data['hydra:member'] || []);
+                    this.state.messages = data['hydra:member'];
                     this.renderInbox();
                 } catch (e) { console.error('Sync Error'); }
             },
@@ -353,10 +348,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
